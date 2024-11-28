@@ -72,7 +72,7 @@ def parse_srt_to_csv(srt_file_content):
 
 
 # Page Title
-st.markdown("<h2 style='text-align: center; color: black;'> 🪶🎈 Drone SRT File to CSV converter and visualizer </h2> ", unsafe_allow_html=True)
+st.title("🪶🎈 Drone SRT File to CSV converter and visualizer")
 st.markdown('###')
 
 
