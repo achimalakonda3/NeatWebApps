@@ -78,7 +78,7 @@ def render_svg(svg):
     st.write(html, unsafe_allow_html=True)
 
 def create_svg_from_coordinates(coordinates, dot_size=5, filename='path.svg'):
-    if not coordinates:
+    if not coordinates.any():
         raise ValueError("No coordinates provided")
     
     origin_lon, origin_lat = coordinates[0]
