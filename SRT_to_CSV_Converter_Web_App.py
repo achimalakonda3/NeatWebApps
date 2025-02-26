@@ -85,7 +85,7 @@ def create_svg_from_coordinates(coordinates, dot_size=1, filename='path.svg'):
     origin_lon, origin_lat = coordinates[0]
     
     # Convert coordinates to relative positions
-    relative_coords = 1000*[(lon - origin_lon, origin_lat - lat) for lon, lat in coordinates]
+    relative_coords = [(lon - origin_lon, origin_lat - lat) for lon, lat in coordinates]
     
     # Scale factor for visualization
     scale = 1000  # Adjust as needed
