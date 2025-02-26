@@ -78,14 +78,14 @@ def render_svg(svg):
     html = r'<img src="data:image/svg+xml;base64,%s"/>' % b64
     st.write(html, unsafe_allow_html=True)
 
-def create_svg_from_coordinates(coordinates, dot_size=5, filename='path.svg'):
+def create_svg_from_coordinates(coordinates, dot_size=1, filename='path.svg'):
     if not coordinates.any():
         raise ValueError("No coordinates provided")
     
     origin_lon, origin_lat = coordinates[0]
     
     # Convert coordinates to relative positions
-    relative_coords = [(lon - origin_lon, origin_lat - lat) for lon, lat in coordinates]
+    relative_coords = 1000*[(lon - origin_lon, origin_lat - lat) for lon, lat in coordinates]
     
     # Scale factor for visualization
     scale = 1000  # Adjust as needed
