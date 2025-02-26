@@ -116,7 +116,7 @@ if uploaded_file is not None:
 
     # Process the file
     map_data = parse_srt_to_csv(srt_content)
-    coordinates = map_data['Latitude', 'Longitude'].to_numpy()
+    coordinates = map_data[['Latitude', 'Longitude']].to_numpy()
     create_svg_from_coordinates(coordinates, 2)
 
     # Display the DataFrame
