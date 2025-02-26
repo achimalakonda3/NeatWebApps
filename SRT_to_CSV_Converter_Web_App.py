@@ -3,7 +3,6 @@ import pandas as pd
 from io import BytesIO
 import re
 import base64
-import svgwrite
   
 
 # Regular Expression Patterns
@@ -78,7 +77,7 @@ def render_svg(svg):
     html = r'<img src="data:image/svg+xml;base64,%s"/>' % b64
     st.write(html, unsafe_allow_html=True)
 
-def create_svg_from_coordinates(coordinates, dot_size=1, filename='path.svg'):
+def create_svg_from_coordinates(coordinates, dot_size=5, filename='path.svg'):
     if not coordinates.any():
         raise ValueError("No coordinates provided")
     
@@ -87,21 +86,46 @@ def create_svg_from_coordinates(coordinates, dot_size=1, filename='path.svg'):
     # Convert coordinates to relative positions
     relative_coords = [(lon - origin_lon, origin_lat - lat) for lon, lat in coordinates]
     
-    # Scale factor for visualization
-    scale = 1000  # Adjust as needed
     
     # Offset to center the path
     min_x = min(x for x, y in relative_coords)
     min_y = min(y for x, y in relative_coords)
+
+    max_x = max(x for x, y in relative_coords)
+    max_y = max(y for x, y in relative_coords)
     
-    path_coords = [(scale * (x - min_x), scale * (y - min_y)) for x, y in relative_coords]
+    # Scale factor for visualization
+    scale = 10000000
+
+    path_coords = [(int(scale * (x - min_x))+dot_size, int(scale * (y - min_y))+dot_size) for x, y in relative_coords]
+
+    height = int(scale* (max_y-min_y)) + 2*dot_size
+    width = int(scale * (max_x-min_x)) + 2*dot_size
     
     # Create SVG
-    dwg = svgwrite.Drawing(filename, profile='tiny')
+    map_to_display = f'<?xml version="1.0" encoding="utf-8"?>'
+    map_to_display += f'\n<svg width="{width}px" height="{height}px" version="1.1" xmlns="http://www.w3.org/2000/svg">'
+    map_to_display += f'<g id="path_points">'
     for x, y in path_coords:
-        dwg.add(dwg.circle(center=(x, y), r=dot_size, fill='black'))
-    
-    render_svg(dwg)
+        map_to_display += f'\n    <circle cx="{x}" cy="{y}" r="{dot_size}" fill="blue" />'
+    map_to_display += f'</g>'
+    # Add start point to a group
+    map_to_display += f'<g id="start_point">'
+    map_to_display += f'\n    <circle cx="{path_coords[0][0]}" cy="{path_coords[0][1]}" r="{2*dot_size}" fill="green" />'
+    map_to_display += f'</g>'
+    # Add end point to a group
+    map_to_display += f'<g id="end_point">'
+    map_to_display += f'\n    <circle cx="{path_coords[-1][0]}" cy="{path_coords[-1][1]}" r="{2*dot_size}" fill="red" />'
+    map_to_display += f'</g>'
+    map_to_display += f'\n</svg>'
+
+    # # Save the SVG (only from local prototyping)
+    # with open('map_to_display.svg', 'w') as f:
+    #     f.write(map_to_display)
+
+    # Display the SVG
+    render_svg(map_to_display)
+    return(map_to_display)
 
 # Page Title
 st.title("🪶🎈 Drone SRT File to CSV converter and visualizer")
@@ -117,9 +141,12 @@ if uploaded_file is not None:
 
     # Process the file
     map_data = parse_srt_to_csv(srt_content)
-    st.write(map_data)
     coordinates = map_data[['Latitude', 'Longitude']].to_numpy()
-    create_svg_from_coordinates(coordinates, 2)
+    path_svg = create_svg_from_coordinates(coordinates)
+
+    # Download SVG
+    file_name = st.text_input("Name SVG File", value="path")
+    st.download_button('Download Path as SVG', data=path_svg, file_name=f'{file_name}.svg')
 
     # Display the DataFrame
     st.subheader("Parsed Data")
@@ -135,4 +162,3 @@ if uploaded_file is not None:
         file_name=f"{uploaded_file.name[:-4]}.csv",
         mime="text/csv",
     )
-
