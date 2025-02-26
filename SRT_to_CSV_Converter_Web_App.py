@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 import re
+import svgwrite
   
 
 # Regular Expression Patterns
@@ -70,6 +71,36 @@ def parse_srt_to_csv(srt_file_content):
     df = pd.DataFrame(data)
     return df
 
+def render_svg(svg):
+    """Renders the given svg string."""
+    b64 = base64.b64encode(svg.encode('utf-8')).decode("utf-8")
+    html = r'<img src="data:image/svg+xml;base64,%s"/>' % b64
+    st.write(html, unsafe_allow_html=True)
+
+def create_svg_from_coordinates(coordinates, dot_size=5, filename='path.svg'):
+    if not coordinates:
+        raise ValueError("No coordinates provided")
+    
+    origin_lon, origin_lat = coordinates[0]
+    
+    # Convert coordinates to relative positions
+    relative_coords = [(lon - origin_lon, origin_lat - lat) for lon, lat in coordinates]
+    
+    # Scale factor for visualization
+    scale = 1000  # Adjust as needed
+    
+    # Offset to center the path
+    min_x = min(x for x, y in relative_coords)
+    min_y = min(y for x, y in relative_coords)
+    
+    path_coords = [(scale * (x - min_x), scale * (y - min_y)) for x, y in relative_coords]
+    
+    # Create SVG
+    dwg = svgwrite.Drawing(filename, profile='tiny')
+    for x, y in path_coords:
+        dwg.add(dwg.circle(center=(x, y), r=dot_size, fill='black'))
+    
+    render_svg(dwg)
 
 # Page Title
 st.title("🪶🎈 Drone SRT File to CSV converter and visualizer")
@@ -85,9 +116,8 @@ if uploaded_file is not None:
 
     # Process the file
     map_data = parse_srt_to_csv(srt_content)
-    map_data['LAT'] = map_data['Latitude']
-    map_data['LON'] = map_data['Longitude']
-    st.map(map_data, color = (0,1,0.5), size = 0.004 , zoom = 19)
+    coordinates = map_data['Latitude', 'Longitude'].to_numpy()
+    create_svg_from_coordinates(coordinates, 2)
 
     # Display the DataFrame
     st.subheader("Parsed Data")
