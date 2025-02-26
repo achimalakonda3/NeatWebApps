@@ -108,7 +108,7 @@ def create_svg_from_coordinates(coordinates, dot_size=5, filename='path.svg'):
     # Graph all the points except first and last
     map_to_display += f'<g id="path_points">'
     for x, y in path_coords[1:-1]:
-        map_to_display += f'\n    <circle cx="{x}" cy="{y}" r="{dot_size}" fill="red" />'
+        map_to_display += f'\n    <circle cx="{x}" cy="{y}" r="{dot_size}" fill= "#FFA500" />'
     map_to_display += f'</g>'
     # Add a line:
     map_to_display += f'\n    <polyline points="'
