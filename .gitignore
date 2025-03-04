@@ -6,7 +6,11 @@ __pycache__/
 # C extensions
 *.so
 
-#
+# Prototyping
+dynamic_images_test.py
+
+# SVGs for testing
+*.svg
 
 # Distribution / packaging
 .Python

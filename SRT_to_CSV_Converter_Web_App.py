@@ -77,6 +77,7 @@ def render_svg(svg):
     html = r'<img src="data:image/svg+xml;base64,%s"/>' % b64
     st.write(html, unsafe_allow_html=True)
 
+@st.cache_data
 def create_svg_from_coordinates(coordinates, frame_num, dot_size=5, filename='path.svg'):
     if not coordinates.any():
         raise ValueError("No coordinates provided")
@@ -115,10 +116,12 @@ def create_svg_from_coordinates(coordinates, frame_num, dot_size=5, filename='pa
         map_to_display += f'\n    <circle cx="{x}" cy="{y}" r="{dot_size}" fill= "#FFA500" />'
     map_to_display += f'</g>'
     # Add a line:
+    map_to_display += f'\n<g id="line">'
     map_to_display += f'\n    <polyline points="'
     for x, y in path_coords:
         map_to_display += f'{x},{y} '
     map_to_display += f'" \n    style="fill:none; stroke:blue; stroke-width:{dot_size/2}" />'
+    map_to_display += f'</g>'
 
     # Add start point to a group
     map_to_display += f'\n<g id="start_point">'
@@ -129,19 +132,21 @@ def create_svg_from_coordinates(coordinates, frame_num, dot_size=5, filename='pa
     map_to_display += f'\n    <circle cx="{path_coords[-1][0]}" cy="{path_coords[-1][1]}" r="{2*dot_size}" fill="red" />'
     map_to_display += f'</g>'
 
+    # # Save the SVG (only from local prototyping)
+    # with open('slightly_incorrectly_displayed_map.svg', 'w') as f:
+    #     f.write(map_to_display)
+
+    return(map_to_display, path_coords, dot_size)
+
+def create_svg_fg_from_coordinates(path_coords, frame_num, dot_size=5):
     # Add the highlghted point to the svg
-    map_to_display += f'\n<g id="Highlighted_point">'
+    map_to_display = f'\n<g id="Highlighted_point">'
     map_to_display += f'\n    <circle cx="{path_coords[frame_num-1][0]}" cy="{path_coords[frame_num-1][1]}" r="{5*dot_size}" fill="white" />'
     map_to_display += f'</g>'
     map_to_display += f'\n</svg>'
 
-    # # Save the SVG (only from local prototyping)
-    # with open('map_to_display.svg', 'w') as f:
-    #     f.write(map_to_display)
-
-    # Display the SVG
-    render_svg(map_to_display)
     return(map_to_display)
+
 
 # Page Title
 st.title("🪶🎈 Drone SRT File to CSV converter and visualizer")
@@ -161,7 +166,10 @@ if uploaded_file is not None:
     map_data = parse_srt_to_csv(srt_content)
     frame_num = st.slider("Flight Timeline Slider", 1, map_data["FrameCnt"].iloc[-1])
     coordinates = map_data[['Latitude', 'Longitude']].to_numpy()
-    path_svg = create_svg_from_coordinates(coordinates, frame_num)
+    bg, path_coords, dot_size = create_svg_from_coordinates(coordinates, frame_num)
+    fg = create_svg_fg_from_coordinates(path_coords, frame_num, dot_size)
+    path_svg = bg + fg
+    render_svg(path_svg)
 
     # Download SVG
     file_name = st.text_input("Name SVG File", value="path")
