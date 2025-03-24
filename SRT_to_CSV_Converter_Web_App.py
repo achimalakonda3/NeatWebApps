@@ -85,7 +85,7 @@ def create_svg_from_coordinates(coordinates, frame_num, dot_size=5, filename='pa
     origin_lon, origin_lat = coordinates[0]
     
     # Convert coordinates to relative positions
-    relative_coords = [(lon - origin_lon, origin_lat - lat) for lon, lat in coordinates]
+    relative_coords = [(lon - origin_lon, lat - origin_lat) for lon, lat in coordinates]
     
     
     # Offset to center the path
